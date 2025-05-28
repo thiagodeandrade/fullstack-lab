@@ -18,6 +18,7 @@ npm run build
 # Create app directory and move built files
 mkdir -p /var/www/app
 cp -r build/* /var/www/app/
+cp index.html /var/www/app/
 
 # Configuring NGINX
 cat <<EOF > /etc/nginx/sites-available/default
@@ -26,7 +27,7 @@ server {
     listen [::]:80 default_server;
 
     root /var/www/app;
-    index index.js;
+    index index.html;
 
     server_name _;
 
