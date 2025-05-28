@@ -76,7 +76,7 @@ jobs:
           apache-jmeter-5.5/bin/jmeter -n -t ./jmeter/load-test.jmx -Jserver_url=http://$D_O_PUBLIC_IP -l result.jtl -e -o report
 
       - name: Upload JMeter HTML report as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: jmeter-report
           path: report
