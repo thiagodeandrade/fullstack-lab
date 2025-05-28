@@ -62,7 +62,7 @@ jobs:
         id: get_ip
         working-directory: ./infra
         run: |
-          ip=$(terraform output -raw ip_address | tr -d '\r')
+          ip=$(terraform output -raw ip_address | tr -d '\r' | tr -d '"')
           echo "D_O_PUBLIC_IP=$ip" >> "$GITHUB_ENV"
           echo "Droplet IP: $ip"
 
