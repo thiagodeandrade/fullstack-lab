@@ -58,7 +58,6 @@ jobs:
         working-directory: ./infra
         run: |
           terraform init
-          terraform destroy -auto-approve || true
           terraform apply -auto-approve
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
@@ -69,10 +68,9 @@ jobs:
         working-directory: ./infra
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\r' | cut -f1 -d:)
-          clean_ip=$(echo "$ip" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-          echo "app_ip=$clean_ip"
-          printf "app_ip=%s\n" "$clean_ip" >> "$GITHUB_OUTPUT"
+          ip=$(terraform output -raw ip_address | tr -d '\r' | cut -f1 -d:)
+          echo "app_ip=$ip"
+          echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
@@ -92,32 +90,14 @@ jobs:
         run: |
           echo "Received app_ip: ${{ needs.deploy-app.outputs.app_ip }}"
 
-      - name: Terraform Init (jmeter-server)
-        working-directory: ./infra-jmeter
-        run: terraform init
-        env:
-          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
-          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
-
-      - name: Terraform Plan (jmeter-server)
-        working-directory: ./infra-jmeter
-        run: terraform plan -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
-        env:
-          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
-          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
-
-      - name: Terraform Apply (jmeter-server)
+      - name: Terraform Init & Apply (jmeter-server)
         working-directory: ./infra-jmeter
         run: |
-          terraform destroy -auto-approve || true
+          terraform init
           terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
-
-      - name: Terraform Output (jmeter-server)
-        working-directory: ./infra-jmeter
-        run: terraform output
 
       - name: Get jmeter-server Public IP
         id: get_jmeter_ip
@@ -125,9 +105,8 @@ jobs:
         shell: bash
         run: |
           ip=$(terraform output -raw jmeter_public_ip | tr -d '\r' | cut -f1 -d:)
-          clean_ip=$(echo "$ip" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-          echo "jmeter_ip=$clean_ip"
-          printf "jmeter_ip=%s\n" "$clean_ip" >> "$GITHUB_OUTPUT"
+          echo "jmeter_ip=$ip"
+          echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
   show-report-url:
     runs-on: ubuntu-latest
