@@ -1,27 +1,26 @@
 #!/bin/bash
 
-# update and install nginx, curl
+# update repository packages
 apt-get update -y
-apt-get install -y nginx curl
 
-# Install Node.js LTS
+# Install nginx and nodejs
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-apt-get install -y nodejs
+apt-get install -y nodejs nginx
 
-# Create environment app
+# Create custom index
 mkdir -p /var/www/app
-echo "<h1>Deploy funcionando!</h1>" > /var/www/app/index.html
+echo "<h1>Deploy to Fullstack LAB!</h1>" > /var/www/app/index.html
 
-# Configuring NGINX
+# Configuring o NGINX
 cat <<EOF > /etc/nginx/sites-available/default
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
 
     root /var/www/app;
-    index index.html index.htm;
+    index index.html;
 
-    server_name fullstack-lab;
+    server_name _;
 
     location / {
         try_files \$uri \$uri/ =404;
