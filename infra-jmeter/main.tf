@@ -20,5 +20,7 @@ resource "digitalocean_droplet" "jmeter" {
   ssh_keys = [var.ssh_fingerprint]
   tags     = ["jmeter"]
 
-  user_data = file("${path.module}/provision.sh")
+  user_data = templatefile("${path.module}/provision.sh.tpl", {
+    app_server_ip = var.app_server_ip
+  })
 }
