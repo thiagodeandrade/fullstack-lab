@@ -1,17 +1,25 @@
 #!/bin/bash
 
-# update repository packages
+# Update repository packages
 apt-get update -y
 
-# Install nginx and nodejs
+# Install nginx, nodejs, and git
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-apt-get install -y nodejs nginx
+apt-get install -y nodejs nginx git
 
-# Create custom index
+# Clone your project
+git clone https://github.com/thiagodeandrade/fullstack-lab.git /opt/app
+
+# Install dependencies and build app
+cd /opt/app
+npm install
+npm run build
+
+# Create app directory and move built files
 mkdir -p /var/www/app
-echo "<h1>Deploy to Fullstack LAB!</h1>" > /var/www/app/index.html
+cp -r build/* /var/www/app/
 
-# Configuring o NGINX
+# Configuring NGINX
 cat <<EOF > /etc/nginx/sites-available/default
 server {
     listen 80 default_server;
