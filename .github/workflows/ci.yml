@@ -52,17 +52,31 @@ jobs:
         working-directory: ./infra
         run: |
           ip=$(terraform output -raw ip_address)
+          echo "D_O_PUBLIC_IP=$ip"
           echo "D_O_PUBLIC_IP=$ip" >> $GITHUB_ENV
+
+      - name: Wait for NGINX to be ready
+        run: |
+          echo "Waiting for NGINX at http://$D_O_PUBLIC_IP ..."
+          for i in {1..10}; do
+            if curl -sSf "http://$D_O_PUBLIC_IP" > /dev/null; then
+              echo "NGINX is up!"
+              break
+            else
+              echo "Not ready yet... retrying in 5s"
+              sleep 5
+            fi
+          done
 
       - name: Run JMeter load test
         run: |
           sudo apt update && sudo apt install -y openjdk-11-jre-headless unzip
-          curl -L https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
+          curl -L https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
           unzip jmeter.zip
           apache-jmeter-5.5/bin/jmeter -n -t ./jmeter/load-test.jmx -Jserver_url=http://$D_O_PUBLIC_IP -l result.jtl -e -o report
 
       - name: Upload JMeter HTML report as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: jmeter-report
           path: report
