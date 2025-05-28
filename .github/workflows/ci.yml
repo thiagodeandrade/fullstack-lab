@@ -32,6 +32,14 @@ jobs:
       - name: Build project
         run: npm run build
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -68,15 +76,25 @@ jobs:
             fi
           done
 
-      - name: Run JMeter load test
+  jmeter:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore Droplet IP
+        run: echo "D_O_PUBLIC_IP=${{ needs.deploy.outputs.D_O_PUBLIC_IP }}" >> $GITHUB_ENV
+
+      - name: Install and run JMeter
         run: |
           sudo apt update && sudo apt install -y openjdk-11-jre-headless unzip
           curl -L https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
           unzip jmeter.zip
           apache-jmeter-5.5/bin/jmeter -n -t ./jmeter/load-test.jmx -Jserver_url=http://$D_O_PUBLIC_IP -l result.jtl -e -o report
 
-      - name: Upload JMeter HTML report as artifact
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: jmeter-report
-          path: report
+      - name: Compress JMeter report
+        run: |
+          zip -r jmeter-report.zip report/
+          echo "✅ JMeter report saved as jmeter-report.zip"
