@@ -20,6 +20,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Fix file permissions for linters
+        run: chmod +x ./node_modules/.bin/*
+
       - name: Run linter
         run: npm run lint
 
