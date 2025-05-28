@@ -100,7 +100,7 @@ jobs:
         id: get_jmeter_ip
         working-directory: ./infra-jmeter
         run: |
-          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\n\r' | cut -f1 -d:)
+          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n\r' | cut -f1 -d:)
           echo "jmeter_ip=$ip"
           echo "jmeter_ip=$ip" >> $GITHUB_OUTPUT
 
