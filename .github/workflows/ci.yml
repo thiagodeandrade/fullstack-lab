@@ -20,10 +20,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fix eslint/prettier permissions
+      - name: Fix files permissions
         run: |
           chmod +x node_modules/.bin/eslint
           chmod +x node_modules/.bin/prettier
+          chmod +x node_modules/.bin/jest
 
       - name: Run linter
         run: npm run lint
