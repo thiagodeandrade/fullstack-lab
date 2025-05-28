@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "prettier": "prettier --check .",
     "test": "jest",
-    "build": "mkdir -p build && cp index*.js build/"
+    "build": "mkdir -p build && cp index*.js index.html build/"
   },
   "repository": {
     "type": "git",
