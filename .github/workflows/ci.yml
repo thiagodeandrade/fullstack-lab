@@ -89,9 +89,9 @@ jobs:
       - name: Run JMeter load test
         run: |
           sudo apt update && sudo apt install -y openjdk-11-jre-headless unzip
-          curl -L https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
+          curl -L https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.6.3.zip -o jmeter.zip
           unzip jmeter.zip
-          apache-jmeter-5.5/bin/jmeter -n -t ./jmeter/load-test.jmx \
+          apache-jmeter-5.6.3/bin/jmeter -n -t ./jmeter/load-test.jmx \
             -Jserver_url=http://$D_O_PUBLIC_IP \
             -l result.jtl -e -o report
 
