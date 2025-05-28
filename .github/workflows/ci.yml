@@ -71,7 +71,7 @@ jobs:
         run: |
           ip=$(terraform output -raw ip_address | tr -d '\r' | cut -f1 -d:)
           echo "app_ip=$ip"
-          echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
+          printf "app_ip=%s\n" "$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
@@ -108,7 +108,7 @@ jobs:
         run: |
           ip=$(terraform output -raw jmeter_public_ip | tr -d '\r' | cut -f1 -d:)
           echo "jmeter_ip=$ip"
-          echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
+          printf "jmeter_ip=%s\n" "$ip" >> "$GITHUB_OUTPUT"
 
   show-report-url:
     runs-on: ubuntu-latest
