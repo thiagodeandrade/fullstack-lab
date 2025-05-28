@@ -26,7 +26,7 @@ server {
     listen [::]:80 default_server;
 
     root /var/www/app;
-    index index.html;
+    index index.js;
 
     server_name _;
 
