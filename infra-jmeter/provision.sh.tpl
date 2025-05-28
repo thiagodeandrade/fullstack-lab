@@ -12,7 +12,7 @@ mv apache-jmeter-5.5 /opt/jmeter
 # Create test plan directory
 mkdir -p /opt/jmeter/loadtest
 cat <<EOF > /opt/jmeter/loadtest/load-test.jmx
-# Você deverá substituir isso pelo seu arquivo final de JMeter, o atual é um placeholder
+${load_test_jmx}
 EOF
 
 # Run JMeter test (against app server IP)

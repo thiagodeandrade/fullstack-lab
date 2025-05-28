@@ -22,5 +22,6 @@ resource "digitalocean_droplet" "jmeter" {
 
   user_data = templatefile("${path.module}/provision.sh.tpl", {
     app_server_ip = var.app_server_ip
+    load_test_jmx = file("${path.module}/../jmeter/load-test.jmx")
   })
 }
