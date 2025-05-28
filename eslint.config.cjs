@@ -3,11 +3,11 @@ module.exports = [
     ignores: ['node_modules/**'],
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'module'
+      sourceType: 'module',
     },
     rules: {
       semi: ['error', 'always'],
-      quotes: ['error', 'single']
-    }
-  }
+      quotes: ['error', 'single'],
+    },
+  },
 ];

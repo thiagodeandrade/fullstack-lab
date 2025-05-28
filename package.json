@@ -6,9 +6,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "prettier": "prettier .",
+    "prettier": "prettier --check .",
     "test": "jest",
-    "build": "echo \"Build step placeholder\""
+    "build": "mkdir -p build && cp index*.js build/"
   },
   "repository": {
     "type": "git",
