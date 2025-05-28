@@ -15,7 +15,107 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
+          node-version: '18'name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
           node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fix file permissions for linters
+        run: chmod +x ./node_modules/.bin/*
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run formatter
+        run: npm run prettier -- --check .
+
+      - name: Run tests
+        run: CI=true npm test
+
+      - name: Build project
+        run: npm run build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init & Apply
+        id: tf_apply
+        working-directory: ./infra
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+
+      - name: Get Droplet Public IP
+        id: get_ip
+        working-directory: ./infra
+        run: |
+          ip=$(terraform output -raw ip_address | tr -d '\r')
+          echo "D_O_PUBLIC_IP=$ip" >> "$GITHUB_ENV"
+          echo "Droplet IP: $ip"
+
+      - name: Wait for NGINX to be ready
+        run: |
+          for i in {1..10}; do
+            if curl -sSf "http://$D_O_PUBLIC_IP" > /dev/null; then
+              echo "NGINX is up"
+              break
+            else
+              echo "NGINX not ready yet, retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+
+  jmeter:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run JMeter load test
+        run: |
+          sudo apt update && sudo apt install -y openjdk-11-jre-headless unzip
+          curl -L https://downloads.apache.org/jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
+          unzip jmeter.zip
+          apache-jmeter-5.5/bin/jmeter -n -t ./jmeter/load-test.jmx \
+            -Jserver_url=http://$D_O_PUBLIC_IP \
+            -l result.jtl -e -o report
+
+      - name: Compress JMeter report
+        run: |
+          zip -r jmeter-report.zip report/
+          echo "JMeter report saved as jmeter-report.zip"
 
       - name: Install dependencies
         run: npm install
