@@ -65,7 +65,6 @@ jobs:
       - name: Get app-server Public IP
         id: get_app_ip
         working-directory: ./infra
-        shell: bash
         run: |
           ip=$(terraform output -raw ip_address 2>/dev/null | cut -f1 -d:)
           echo "app_ip=${ip}" >> $GITHUB_ENV
