@@ -23,3 +23,4 @@ resource "digitalocean_droplet" "app" {
 
   user_data = file("${path.module}/provision.sh")
 }
+
