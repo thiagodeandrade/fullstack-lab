@@ -63,12 +63,12 @@ jobs:
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
 
       - name: Get app-server Public IP
-        id: get_ip
+        id: get_app_ip
         working-directory: ./infra
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address | tr -d '\r')
-          echo "app_ip=$ip" >> $GITHUB_ENV
+          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\r')
+          echo "app_ip=$ip" >> "$GITHUB_ENV"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
@@ -97,8 +97,8 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address | tr -d '\r')
-          echo "jmeter_ip=$ip" >> $GITHUB_ENV
+          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\r')
+          echo "jmeter_ip=$ip" >> "$GITHUB_ENV"
 
   show-report-url:
     runs-on: ubuntu-latest
