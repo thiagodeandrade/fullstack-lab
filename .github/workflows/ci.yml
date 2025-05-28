@@ -68,6 +68,7 @@ jobs:
         shell: bash
         run: |
           ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\r')
+          echo $ip
           echo "app_ip=$ip" >> "$GITHUB_ENV"
 
   deploy-jmeter:
