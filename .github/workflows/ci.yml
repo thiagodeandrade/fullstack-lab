@@ -67,7 +67,10 @@ jobs:
         working-directory: ./infra
         run: |
           ip=$(terraform output -raw ip_address 2>/dev/null | cut -f1 -d:)
-          echo "app_ip=${ip}" >> $GITHUB_ENV
+          echo "----$ip----"
+          echo "app_ip=$ip" >> $GITHUB_ENV
+          echo "###"
+          echo "$GITHUB_ENV"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
