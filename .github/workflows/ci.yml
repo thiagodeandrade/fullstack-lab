@@ -95,7 +95,8 @@ jobs:
         run: |
           terraform init
           terraform destroy -auto-approve || true
-          terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
+          export APP_IP="${{ needs.deploy-app.outputs.app_ip }}"
+          terraform apply -auto-approve -var="app_server_ip=${APP_IP}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
