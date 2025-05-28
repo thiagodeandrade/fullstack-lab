@@ -66,12 +66,8 @@ jobs:
         id: get_app_ip
         working-directory: ./infra
         run: |
-          ip=$(terraform output -raw ip_address 2>/dev/null | cut -f1 -d:)
-          echo "$ip" > ip.txt
-          sudo apt-get update && sudo apt-get install -y dos2unix
-          dos2unix ip.txt
-          cat ip.txt
-          echo "app_ip=`cat ip.txt`" >> $GITHUB_ENV
+          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\n\r' | cut -f1 -d:)
+          echo "app_ip=$ip" >> $GITHUB_ENV
 
   deploy-jmeter:
     runs-on: ubuntu-latest
