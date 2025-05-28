@@ -5,7 +5,7 @@ apt-get update -y
 apt-get install -y openjdk-11-jre-headless nginx unzip curl
 
 # Download and extract JMeter
-curl -L https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
+curl -L https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
 unzip jmeter.zip
 mv apache-jmeter-5.5 /opt/jmeter
 
