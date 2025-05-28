@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -20,12 +20,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fix files permissions
-        run: |
-          chmod +x node_modules/.bin/eslint
-          chmod +x node_modules/.bin/prettier
-          chmod +x node_modules/.bin/jest
-
       - name: Run linter
         run: npm run lint
 
@@ -37,3 +31,38 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init & Apply
+        id: tf_apply
+        working-directory: ./infra
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+
+      - name: Get Droplet Public IP
+        id: get_ip
+        working-directory: ./infra
+        run: |
+          ip=$(terraform output -raw ip_address)
+          echo "D_O_PUBLIC_IP=$ip" >> $GITHUB_ENV
+
+      - name: Run JMeter load test
+        run: |
+          sudo apt update && sudo apt install -y openjdk-11-jre-headless unzip
+          curl -L https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
+          unzip jmeter.zip
+          apache-jmeter-5.5/bin/jmeter -n -t ./jmeter/load-test.jmx -Jserver_url=http://$D_O_PUBLIC_IP -l result.jtl -e -o report
+
+      - name: Upload JMeter HTML report as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-report
+          path: report
