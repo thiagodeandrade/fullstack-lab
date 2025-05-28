@@ -13,7 +13,3 @@ resource "digitalocean_droplet" "jmeter" {
 
   user_data = file("${path.module}/provision.sh")
 }
-
-output "jmeter_public_ip" {
-  value = digitalocean_droplet.jmeter.ipv4_address
-}
