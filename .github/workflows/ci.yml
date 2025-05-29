@@ -106,8 +106,9 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-          echo "jmeter_ip=$ip"
+          raw=$(terraform output -raw jmeter_public_ip 2>/dev/null)
+          ip=$(echo "$raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+          echo "IP capturado: $ip"
           echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
       - name: Verificar log remoto de provisionamento
