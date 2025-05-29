@@ -13,7 +13,7 @@ mv apache-jmeter-5.5 /opt/jmeter
 # Extrai o IP limpo dentro do script
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 
-# Criação do arquivo de teste JMX (precisa existir antes de rodar o run_app.sh)
+# Grava o conteúdo do JMX (já injetado pelo Terraform)
 cat <<EOF > /root/load-test.jmx
 ${load_test_jmx}
 EOF
