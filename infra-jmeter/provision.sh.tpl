@@ -12,7 +12,6 @@ mv apache-jmeter-5.5 /opt/jmeter
 
 # Extrai apenas o IP da variável app_server_ip
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-echo "${{clean_ip}}"
 
 # Cria um script separado para esperar o HTTP 200 e executar o JMeter
 cat <<'WAIT_EOF' > /root/run_app.sh
@@ -28,11 +27,11 @@ while true; do
   sleep 5
 done
 # Run JMeter
-/opt/jmeter/bin/jmeter -n -t /opt/jmeter/loadtest/load-test.jmx -Jserver_url=http://$clean_ip -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
+/opt/jmeter/bin/jmeter -n -t /root/load-test.jmx -Jserver_url=http://$clean_ip -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
 WAIT_EOF
 
 chmod +x /root/run_app.sh
-/root/run_app.sh "${{clean_ip}}"
+/root/run_app.sh "$clean_ip"
 
 # Configuração do JMeter
 cat <<EOF > /root/load-test.jmx
