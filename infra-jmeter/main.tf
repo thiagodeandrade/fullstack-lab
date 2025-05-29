@@ -28,6 +28,3 @@ resource "digitalocean_droplet" "jmeter" {
   }
 }
 
-output "jmeter_public_ip" {
-  value = digitalocean_droplet.jmeter.ipv4_address
-}
