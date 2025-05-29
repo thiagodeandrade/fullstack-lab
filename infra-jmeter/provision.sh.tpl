@@ -30,7 +30,7 @@ while true; do
   fi
   sleep 5
 done
-/opt/jmeter/bin/jmeter -n -t /root/load-test.jmx -Jserver_url=http://$clean_ip -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
+/opt/jmeter/bin/jmeter -n -t /root/load-test.jmx -Jserver_url=http://$clean_ip -Jjmeter.save.saveservice.output_format=csv -Jjmeter.save.saveservice.successful=true -Jjmeter.save.saveservice.label=true -Jjmeter.save.saveservice.response_code=true -Jjmeter.save.saveservice.response_message=true -l /opt/jmeter/report/result.jtl -j /opt/jmeter/report/jmeter.log && rm -rf /opt/jmeter/report/html && /opt/jmeter/bin/jmeter -g /opt/jmeter/report/result.jtl -o /opt/jmeter/report/html -Jjmeter.save.saveservice.output_format=csv -Jjmeter.reportgenerator.overall_filter="^GET /$"
 WAIT_EOF
 
 chmod +x /root/run_app.sh
