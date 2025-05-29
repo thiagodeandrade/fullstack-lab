@@ -68,10 +68,22 @@ jobs:
         working-directory: ./infra
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\r' | cut -f1 -d:)
-          clean_ip=$(echo "$ip" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-          echo "app_ip=$clean_ip"
-          printf "app_ip=%s\n" "$clean_ip" >> "$GITHUB_OUTPUT"
+          ip=$(terraform output -raw ip_address | tr -d '\r' | cut -f1 -d:)
+          echo "app_ip=$ip"
+          echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for NGINX (app-server)
+        run: |
+          for i in {1..30}; do
+            if curl -s --head --request GET http://${{ steps.get_app_ip.outputs.app_ip }} | grep "200 OK" > /dev/null; then
+              echo "NGINX is up on app-server"
+              exit 0
+            fi
+            echo "Waiting for NGINX on app-server..."
+            sleep 5
+          done
+          echo "NGINX did not start in time on app-server"
+          exit 1
 
   deploy-jmeter:
     runs-on: ubuntu-latest
@@ -105,10 +117,22 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\r' | cut -f1 -d:)
-          clean_ip=$(echo "$ip" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}')
-          echo "jmeter_ip=$clean_ip"
-          printf "jmeter_ip=%s\n" "$clean_ip" >> "$GITHUB_OUTPUT"
+          ip=$(terraform output -raw jmeter_public_ip | tr -d '\r' | cut -f1 -d:)
+          echo "jmeter_ip=$ip"
+          echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for NGINX (jmeter-server)
+        run: |
+          for i in {1..30}; do
+            if curl -s --head --request GET http://${{ steps.get_jmeter_ip.outputs.jmeter_ip }} | grep "200 OK" > /dev/null; then
+              echo "NGINX is up on jmeter-server"
+              exit 0
+            fi
+            echo "Waiting for NGINX on jmeter-server..."
+            sleep 5
+          done
+          echo "NGINX did not start in time on jmeter-server"
+          exit 1
 
   show-report-url:
     runs-on: ubuntu-latest
