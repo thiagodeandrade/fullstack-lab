@@ -69,9 +69,9 @@ jobs:
         shell: bash
         run: |
           raw=$(terraform output -raw ip_address 2>/dev/null)
-          ip=$(echo "$raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+          ip=$(echo "$raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
           echo "IP capturado: $ip"
-          echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
+          printf "app_ip=%s\n" "$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
@@ -106,14 +106,9 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
+          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
           echo "IP capturado: $ip"
           printf "jmeter_ip=%s\n" "$ip" >> "$GITHUB_OUTPUT"
-
-      - name: Verificar log remoto de provisionamento
-        run: |
-          echo "JMeter IP recebido: ${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
-          ssh -o StrictHostKeyChecking=no root@${{ needs.deploy-jmeter.outputs.jmeter_ip }} "tail -n 50 /var/log/jmeter.log || echo 'sem log'"
 
   show-report-url:
     runs-on: ubuntu-latest
@@ -121,4 +116,5 @@ jobs:
     steps:
       - name: Show JMeter Report URL
         run: |
-          echo "Access the JMeter report at: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}/report/"
+          echo "JMeter IP: ${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
+          echo "Relatório disponível em: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}/report/"
