@@ -24,7 +24,3 @@ resource "digitalocean_droplet" "jmeter" {
     load_test_jmx = file("${path.module}/../jmeter/load-test.jmx")
   })
 }
-
-output "jmeter_public_ip" {
-  value = digitalocean_droplet.jmeter.ipv4_address
-}

@@ -1,9 +1,14 @@
-variable "app_server_ip" {
-  description = "IP público do app-server"
+variable "do_token" {
   type        = string
+  description = "DigitalOcean API token"
 }
 
-variable "load_test_jmx" {
+variable "ssh_fingerprint" {
   type        = string
-  description = "Conteúdo do JMX para teste de carga"
+  description = "SSH fingerprint configurado na conta DigitalOcean"
+}
+
+variable "app_server_ip" {
+  type        = string
+  description = "IP público do app-server para o JMeter testar"
 }
