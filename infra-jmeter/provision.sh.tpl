@@ -23,7 +23,7 @@ cat <<'WAIT_EOF' > /root/run_app.sh
 #!/bin/bash
 clean_ip="$1"
 while true; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' "http://$clean_ip")
+  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://$clean_ip")
   echo "Waiting app-server ($clean_ip) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
