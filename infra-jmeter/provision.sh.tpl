@@ -2,7 +2,7 @@
 
 # Update and install required packages
 apt-get update -y
-apt-get install -y openjdk-11-jre-headless nginx unzip curl
+apt-get install -y openjdk-11-jre-headless nginx unzip curl --fix-broken -y
 
 # Download and extract JMeter
 curl -L https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.zip -o jmeter.zip
@@ -16,7 +16,7 @@ ${load_test_jmx}
 EOF
 
 clean_ip=$(echo "$${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-
+echo $clean_ip
 # Wainting HTTP 200
 while true; do
   code=$(curl -s -o /dev/null -w '%%{http_code}' "http://$${clean_ip}")
