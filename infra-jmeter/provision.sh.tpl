@@ -25,7 +25,7 @@ timeout=120
 elapsed=0
 
 while true; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' "http://$clean_ip")
+  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://$clean_ip")
   echo "Waiting app-server ($clean_ip) - HTTP response: $code" | tee -a /var/log/jmeter.log
   if [ "$code" = "200" ]; then
     break
