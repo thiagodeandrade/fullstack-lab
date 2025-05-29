@@ -13,19 +13,13 @@ provider "digitalocean" {
 
 resource "digitalocean_droplet" "jmeter" {
   name   = "jmeter-server"
-  region = "nyc3"
-  size   = "s-1vcpu-2gb"
   image  = "ubuntu-22-04-x64"
-
+  region = "nyc3"
+  size   = "s-1vcpu-1gb"
   ssh_keys = [var.ssh_fingerprint]
-  tags     = ["jmeter"]
 
   user_data = templatefile("${path.module}/provision.sh.tpl", {
     app_server_ip = var.app_server_ip
     load_test_jmx = file("${path.module}/../jmeter/load-test.jmx")
   })
-}
-
-output "app_server_ip" {
-  value = var.app_server_ip
 }
