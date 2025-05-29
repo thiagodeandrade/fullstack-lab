@@ -13,12 +13,17 @@ mv apache-jmeter-5.5 /opt/jmeter
 # Extrai o IP limpo dentro do script
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 
+# Grava o conteúdo do JMX (já injetado pelo Terraform)
+cat <<'EOF' > /root/load-test.jmx
+${load_test_jmx}
+EOF
+
 # Cria um script separado para esperar o HTTP 200 e executar o JMeter
 cat <<'WAIT_EOF' > /root/run_app.sh
 #!/bin/bash
 clean_ip="$1"
 while true; do
-  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://$clean_ip")
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://$clean_ip")
   echo "Waiting app-server ($clean_ip) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
