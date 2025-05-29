@@ -91,7 +91,7 @@ jobs:
 
       - name: Debug IP recebido do deploy-app
         run: |
-           echo "App-server IP recebido: ${{ needs.deploy-app.outputs.app_ip }}"
+          echo "App-server IP recebido: ${{ needs.deploy-app.outputs.app_ip }}"
 
       - name: Verificar resposta HTTP do app-server
         run: |
