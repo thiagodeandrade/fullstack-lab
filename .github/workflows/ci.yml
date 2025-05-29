@@ -91,13 +91,17 @@ jobs:
 
       - name: Debug IP recebido do deploy-app
         run: |
-          echo "App-server IP recebido: ${{ needs.deploy-app.outputs.app_ip }}"
+           echo "App-server IP recebido: ${{ needs.deploy-app.outputs.app_ip }}"
+
+      - name: Verificar resposta HTTP do app-server
+        run: |
+          echo "Verificando se http://${{ needs.deploy-app.outputs.app_ip }} responde..."
+          curl -I --max-time 10 http://${{ needs.deploy-app.outputs.app_ip }} || echo "App-server não respondeu"
 
       - name: Terraform Apply (jmeter-server)
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          echo "Executando terraform apply com IP: ${{ needs.deploy-app.outputs.app_ip }}"
           terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
@@ -108,8 +112,8 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n\r')
-          echo "jmeter_ip=$ip" >> $GITHUB_OUTPUT
+          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n' | tr -d '\r')
+          echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
   show-report-url:
     runs-on: ubuntu-latest
