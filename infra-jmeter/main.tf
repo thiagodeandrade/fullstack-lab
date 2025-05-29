@@ -16,11 +16,18 @@ resource "digitalocean_droplet" "jmeter" {
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
   size   = "s-1vcpu-2gb"
-
   ssh_keys = [var.ssh_fingerprint]
 
   user_data = templatefile("${path.module}/provision.sh.tpl", {
     app_server_ip = var.app_server_ip
-    load_test_jmx = file("${path.module}/../jmeter/load-test.jmx")
   })
+
+  provisioner "file" {
+    source      = "${path.module}/../jmeter/load-test.jmx"
+    destination = "/root/load-test.jmx"
+  }
+}
+
+output "jmeter_public_ip" {
+  value = digitalocean_droplet.jmeter.ipv4_address
 }

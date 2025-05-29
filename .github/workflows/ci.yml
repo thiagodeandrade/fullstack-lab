@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fix files permissions
+      - name: Fix file permissions
         run: chmod -R +x node_modules/.bin
 
       - name: Run linter
@@ -68,10 +68,9 @@ jobs:
         working-directory: ./infra
         shell: bash
         run: |
-          raw=$(terraform output -raw ip_address 2>/dev/null)
-          ip=$(echo "$raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
-          echo "IP capturado: $ip"
-          printf "app_ip=%s\n" "$ip" >> "$GITHUB_OUTPUT"
+          ip=$(terraform output -raw ip_address | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          echo "app_ip=$ip"
+          echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
@@ -87,16 +86,11 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Terraform Init (jmeter-server)
+      - name: Terraform Init & Apply (jmeter-server)
         working-directory: ./infra-jmeter
-        run: terraform init
-
-      - name: Terraform Apply (jmeter-server)
-        working-directory: ./infra-jmeter
-        shell: bash
         run: |
-          set -x
-          terraform apply -auto-approve -input=false -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
+          terraform init
+          terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
@@ -106,9 +100,9 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
-          echo "IP capturado: $ip"
-          printf "jmeter_ip=%s\n" "$ip" >> "$GITHUB_OUTPUT"
+          ip=$(terraform output -raw jmeter_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          echo "jmeter_ip=$ip"
+          echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
   show-report-url:
     runs-on: ubuntu-latest
@@ -117,4 +111,4 @@ jobs:
       - name: Show JMeter Report URL
         run: |
           echo "JMeter IP: ${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
-          echo "Relatório disponível em: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}/report/"
+          echo "Access the JMeter report at: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}/report/"
