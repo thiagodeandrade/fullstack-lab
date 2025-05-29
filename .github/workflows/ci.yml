@@ -106,8 +106,7 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          raw=$(terraform output -raw jmeter_public_ip 2>/dev/null)
-          ip=$(echo "$raw" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+          ip=$(terraform output -raw jmeter_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
           echo "IP capturado: $ip"
           echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
