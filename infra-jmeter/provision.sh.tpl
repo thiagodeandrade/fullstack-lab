@@ -10,18 +10,26 @@ curl -L https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.zip -o
 unzip jmeter.zip
 mv apache-jmeter-5.5 /opt/jmeter
 
+# Extrai apenas o IP da variável app_server_ip
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 echo "${{clean_ip}}"
 
-# Waiting HTTP 200
+# Cria um script separado para esperar o HTTP 200
+cat <<'WAIT_EOF' > /root/wait_for_app.sh
+#!/bin/bash
+clean_ip="$1"
 while true; do
-  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://${{clean_ip}}")
-  echo "Waiting app-server (${{clean_ip}}) - HTTP response: $code"
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://$clean_ip")
+  echo "Waiting app-server ($clean_ip) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
   fi
   sleep 5
 done
+WAIT_EOF
+
+chmod +x /root/wait_for_app.sh
+/root/wait_for_app.sh "${{clean_ip}}"
 
 # Configuração do JMeter
 cat <<EOF > /root/load-test.jmx
