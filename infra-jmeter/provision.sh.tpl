@@ -11,9 +11,16 @@ mv apache-jmeter-5.5 /opt/jmeter
 
 # Create test plan directory
 mkdir -p /opt/jmeter/loadtest
-cat <<EOF > /opt/jmeter/loadtest/load-test.jmx
+cat <<'EOF' > /opt/jmeter/loadtest/load-test.jmx'
 ${load_test_jmx}
 EOF
+
+# Wainting HTTP 200
+until [ "$(curl -s -o /dev/null -w "%{http_code}" http://${app_server_ip})" -eq 200 ]; do
+  echo "Waiting app-server (${app_server_ip}) with HTTP response 200..."
+  sleep 5
+done
+echo "app-server OK!"
 
 # Run JMeter test (against app server IP)
 /opt/jmeter/bin/jmeter -n -t /opt/jmeter/loadtest/load-test.jmx -Jserver_url=http://${app_server_ip} -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
