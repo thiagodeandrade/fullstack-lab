@@ -14,10 +14,11 @@ mv apache-jmeter-5.5 /opt/jmeter
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 echo "${{clean_ip}}"
 
-# Cria um script separado para esperar o HTTP 200
-cat <<'WAIT_EOF' > /root/wait_for_app.sh
+# Cria um script separado para esperar o HTTP 200 e executar o JMeter
+cat <<'WAIT_EOF' > /root/run_app.sh
 #!/bin/bash
 clean_ip="$1"
+# Wait for HTTP 200
 while true; do
   code=$(curl -s -o /dev/null -w '%{http_code}' "http://$clean_ip")
   echo "Waiting app-server ($clean_ip) - HTTP response: $code"
@@ -26,18 +27,17 @@ while true; do
   fi
   sleep 5
 done
+# Run JMeter
+/opt/jmeter/bin/jmeter -n -t /opt/jmeter/loadtest/load-test.jmx -Jserver_url=http://$clean_ip -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
 WAIT_EOF
 
-chmod +x /root/wait_for_app.sh
-/root/wait_for_app.sh "${{clean_ip}}"
+chmod +x /root/run_app.sh
+/root/run_app.sh "${{clean_ip}}"
 
 # Configuração do JMeter
 cat <<EOF > /root/load-test.jmx
 ${load_test_jmx}
 EOF
-
-# jmeter
-/opt/jmeter/bin/jmeter -n -t /opt/jmeter/loadtest/load-test.jmx -Jserver_url=http://$${clean_ip} -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
 
 # Setup NGINX to serve the report
 cat <<EOF > /etc/nginx/sites-available/default
