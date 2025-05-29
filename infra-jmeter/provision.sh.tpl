@@ -64,11 +64,3 @@ server {
 
     location / {
         try_files \$uri \$uri/ =404;
-    }
-}
-EOF
-
-# Restart nginx
-systemctl restart nginx
-
-echo "Provisionamento finalizado com IP: ${app_server_ip}" >> /var/log/jmeter.log

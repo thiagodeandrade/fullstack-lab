@@ -91,20 +91,16 @@ jobs:
         working-directory: ./infra-jmeter
         run: terraform init
 
-      - name: Debug IP recebido do deploy-app
-        run: |
-          echo "App-server IP recebido: ${{ needs.deploy-app.outputs.app_ip }}"
-
-      - name: Verificar resposta HTTP do app-server
-        run: |
-          echo "Verificando se http://${{ needs.deploy-app.outputs.app_ip }} responde..."
-          curl -I --max-time 10 http://${{ needs.deploy-app.outputs.app_ip }} || echo "App-server não respondeu"
+      - name: Terraform Plan (jmeter-server)
+        working-directory: ./infra-jmeter
+        run: terraform plan -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
 
       - name: Terraform Apply (jmeter-server)
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
+          set -x
+          terraform apply -auto-approve -input=false -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
@@ -116,6 +112,10 @@ jobs:
         run: |
           ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n' | tr -d '\r')
           echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar log remoto de provisionamento
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ needs.deploy-jmeter.outputs.jmeter_ip }} "tail -n 50 /var/log/jmeter.log || echo 'sem log'"
 
   show-report-url:
     runs-on: ubuntu-latest
