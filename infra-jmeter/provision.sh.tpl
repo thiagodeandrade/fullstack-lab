@@ -17,8 +17,8 @@ EOF
 
 # Wait until app-server responds HTTP 200
 while true; do
-  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://${app_server_ip}")
-  app_ip=`echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+'`
+  app_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://${app_ip}")
   echo "Waiting app-server (${app_ip}) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
@@ -26,6 +26,7 @@ while true; do
   sleep 5
 done
 echo "app-server OK!"
+
 
 # Run JMeter test (against app server IP)
 /opt/jmeter/bin/jmeter -n -t /opt/jmeter/loadtest/load-test.jmx -Jserver_url=http://${app_server_ip} -l /opt/jmeter/report/result.jtl -e -o /opt/jmeter/report
