@@ -13,6 +13,11 @@ mv apache-jmeter-5.5 /opt/jmeter
 # Extrai o IP limpo dentro do script
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 
+# Criação do arquivo de teste JMX (precisa existir antes de rodar o run_app.sh)
+cat <<EOF > /root/load-test.jmx
+${load_test_jmx}
+EOF
+
 # Cria um script separado para esperar o HTTP 200 e executar o JMeter
 cat <<'WAIT_EOF' > /root/run_app.sh
 #!/bin/bash
@@ -30,11 +35,6 @@ WAIT_EOF
 
 chmod +x /root/run_app.sh
 /root/run_app.sh "$clean_ip"
-
-# Criação do arquivo de teste JMX
-cat <<EOF > /root/load-test.jmx
-${load_test_jmx}
-EOF
 
 # Configuração do NGINX para servir o relatório
 cat <<EOF > /etc/nginx/sites-available/default

@@ -106,11 +106,13 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n' | tr -d '\r')
+          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          echo "jmeter_ip=$ip"
           echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
       - name: Verificar log remoto de provisionamento
         run: |
+          echo "JMeter IP recebido: ${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
           ssh -o StrictHostKeyChecking=no root@${{ needs.deploy-jmeter.outputs.jmeter_ip }} "tail -n 50 /var/log/jmeter.log || echo 'sem log'"
 
   show-report-url:
