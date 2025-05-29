@@ -11,13 +11,13 @@ mv apache-jmeter-5.5 /opt/jmeter
 
 # Create test plan directory
 mkdir -p /opt/jmeter/loadtest
-cat <<'EOF' > /opt/jmeter/loadtest/load-test.jmx'
+cat <<'EOF' > /opt/jmeter/loadtest/load-test.jmx
 ${load_test_jmx}
 EOF
 
 # Wainting HTTP 200
 while [[ "$(curl -s -o /dev/null -w '%%{http_code}' http://${app_server_ip})" != "200" ]]; do
-  echo "Aguardando o app-server (${app_server_ip}) responder com HTTP 200..."
+  echo "Waiting app-server (${app_server_ip}) HTTP 200 response..."
   sleep 5
 done
 echo "app-server OK!"
