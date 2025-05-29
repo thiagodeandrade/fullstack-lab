@@ -15,7 +15,7 @@ resource "digitalocean_droplet" "jmeter" {
   name   = "jmeter-server"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
-  size   = "s-1vcpu-1gb"
+  size   = "s-1vcpu-2gb"
 
   ssh_keys = [var.ssh_fingerprint]
 
