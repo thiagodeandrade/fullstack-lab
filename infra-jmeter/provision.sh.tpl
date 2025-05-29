@@ -19,7 +19,7 @@ clean_ip=$(echo "$${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 
 # Wainting HTTP 200
 while true; do
-  code=$(curl -s -o /dev/null -w '%{http_code}' "http://$${clean_ip}")
+  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://$${clean_ip}")
   echo "Waiting app-server ($${clean_ip}) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
