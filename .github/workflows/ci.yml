@@ -68,9 +68,10 @@ jobs:
         working-directory: ./infra
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-          echo "IP (limpo): $ip"
-          echo "app_ip=$ip" | sed 's/[^[:print:]]//g' | tee -a $GITHUB_OUTPUT
+            {
+            ip=$(terraform output -raw ip_address | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+            printf "app_ip=%s\n" "$ip"
+            } >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
     runs-on: ubuntu-latest
