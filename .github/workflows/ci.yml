@@ -68,7 +68,8 @@ jobs:
         working-directory: ./infra
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\n\r' | cut -f1 -d:)
+          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\n\r')
+          echo "app_ip=$ip"
           echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
@@ -103,7 +104,8 @@ jobs:
         working-directory: ./infra-jmeter
         shell: bash
         run: |
-          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n\r' | cut -f1 -d:)
+          ip=$(terraform output -raw jmeter_public_ip 2>/dev/null | tr -d '\n\r')
+          echo "jmeter_ip=$ip"
           echo "jmeter_ip=$ip" >> "$GITHUB_OUTPUT"
 
   show-report-url:
