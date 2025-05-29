@@ -18,7 +18,7 @@ EOF
 # Wait until app-server responds HTTP 200
 while true; do
   app_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-  code=$(curl -s -o /dev/null -w '%{http_code}' "http://${app_ip}")
+  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://${app_ip}")
   echo "Waiting app-server (${app_ip}) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
