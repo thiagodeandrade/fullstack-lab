@@ -68,8 +68,9 @@ jobs:
         working-directory: ./infra
         shell: bash
         run: |
-          ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\n\r')
-          echo "IP capturado: $ip"
+          terraform_output=$(terraform output -raw ip_address 2>/dev/null)
+          ip=$(echo "$terraform_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          echo "IP capturado limpo: $ip"
           echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
