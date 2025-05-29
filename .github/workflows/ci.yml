@@ -91,10 +91,6 @@ jobs:
         working-directory: ./infra-jmeter
         run: terraform init
 
-      - name: Terraform Plan (jmeter-server)
-        working-directory: ./infra-jmeter
-        run: terraform plan -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
-
       - name: Terraform Apply (jmeter-server)
         working-directory: ./infra-jmeter
         shell: bash
