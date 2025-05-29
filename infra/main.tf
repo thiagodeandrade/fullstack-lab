@@ -14,7 +14,7 @@ provider "digitalocean" {
 resource "digitalocean_droplet" "app" {
   name   = "app-server"
   region = "nyc3"
-  size   = "s-1vcpu-1gb"
+  size = "s-1vcpu-2gb"
   image  = "ubuntu-22-04-x64"
 
   ssh_keys = [var.ssh_fingerprint]

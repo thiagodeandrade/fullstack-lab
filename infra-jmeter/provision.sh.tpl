@@ -15,9 +15,13 @@ cat <<'EOF' > /opt/jmeter/loadtest/load-test.jmx
 ${load_test_jmx}
 EOF
 
-# Wainting HTTP 200
-while [[ "$(curl -s -o /dev/null -w '%%{http_code}' http://${app_server_ip})" != "200" ]]; do
-  echo "Waiting app-server (${app_server_ip}) HTTP 200 response..."
+# Wait until app-server responds HTTP 200
+while true; do
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://${app_server_ip}")
+  echo "Waiting app-server (${app_server_ip}) - HTTP response: $code"
+  if [ "$code" = "200" ]; then
+    break
+  fi
   sleep 5
 done
 echo "app-server OK!"
