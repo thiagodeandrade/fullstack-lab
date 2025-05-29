@@ -45,7 +45,7 @@ server {
     listen 80 default_server;
     listen [::]:80 default_server;
 
-    root /opt/jmeter/report;
+    root /opt/jmeter/report/html;
     index index.html;
 
     server_name _;
