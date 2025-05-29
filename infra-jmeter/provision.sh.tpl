@@ -15,7 +15,7 @@ echo "${clean_ip}"
 
 # Waiting HTTP 200
 while true; do
-  code=$(curl -s -o /dev/null -w '%{{http_code}}' "http://${clean_ip}")
+  code=$(curl -s -o /dev/null -w '%%{http_code}' "http://${clean_ip}")
   echo "Waiting app-server (${clean_ip}) - HTTP response: $code"
   if [ "$code" = "200" ]; then
     break
@@ -23,7 +23,7 @@ while true; do
   sleep 5
 done
 
-# JMeter
+# Exemplo: Configuração do JMeter
 cat <<EOF > /root/load-test.jmx
 ${load_test_jmx}
 EOF
