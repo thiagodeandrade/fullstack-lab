@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           ip=$(terraform output -raw ip_address 2>/dev/null | tr -d '\n\r')
-          echo "app_ip=$ip"
+          echo "IP capturado: $ip"
           echo "app_ip=$ip" >> "$GITHUB_OUTPUT"
 
   deploy-jmeter:
@@ -90,9 +90,16 @@ jobs:
         working-directory: ./infra-jmeter
         run: terraform init
 
+      - name: Debug IP recebido do deploy-app
+        run: |
+          echo "App-server IP recebido: ${{ needs.deploy-app.outputs.app_ip }}"
+
       - name: Terraform Apply (jmeter-server)
         working-directory: ./infra-jmeter
-        run: terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
+        shell: bash
+        run: |
+          echo "Executando terraform apply com IP: ${{ needs.deploy-app.outputs.app_ip }}"
+          terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
