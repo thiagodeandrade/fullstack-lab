@@ -16,8 +16,8 @@ ${load_test_jmx}
 EOF
 
 # Wainting HTTP 200
-until [ "$(curl -s -o /dev/null -w "%{http_code}" http://${app_server_ip})" -eq 200 ]; do
-  echo "Waiting app-server (${app_server_ip}) with HTTP response 200..."
+while [[ "$(curl -s -o /dev/null -w '%%{http_code}' http://${app_server_ip})" != "200" ]]; do
+  echo "Aguardando o app-server (${app_server_ip}) responder com HTTP 200..."
   sleep 5
 done
 echo "app-server OK!"
