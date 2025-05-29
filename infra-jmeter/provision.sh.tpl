@@ -58,4 +58,4 @@ EOF
 # Restart nginx
 systemctl restart nginx
 
-echo "✅ VARIÁVEL FUNCIONANDO: ${app_server_ip}"
+echo "IP: ${app_server_ip}"
