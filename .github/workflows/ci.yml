@@ -86,15 +86,13 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Debug received IP from deploy-app
-        run: |
-          echo "Received app_ip: ${{ needs.deploy-app.outputs.app_ip }}"
-
-      - name: Terraform Init & Apply (jmeter-server)
+      - name: Terraform Init (jmeter-server)
         working-directory: ./infra-jmeter
-        run: |
-          terraform init
-          terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
+        run: terraform init
+
+      - name: Terraform Apply (jmeter-server)
+        working-directory: ./infra-jmeter
+        run: terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
