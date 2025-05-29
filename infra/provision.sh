@@ -2,6 +2,7 @@
 
 # Update repository packages
 apt-get update -y
+apt-get install --fix-broken -y
 
 # Install nginx, nodejs, and git
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
