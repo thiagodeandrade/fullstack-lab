@@ -6,7 +6,7 @@ apt-get install --fix-broken -y
 
 # Install nginx, nodejs, and git
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-apt-get install -y nodejs nginx git
+apt-get install -y nodejs nginx git apache2-utils
 
 # Clone your project
 git clone https://github.com/thiagodeandrade/fullstack-lab.git /opt/app
@@ -21,7 +21,7 @@ mkdir -p /var/www/app
 cp -r build/* /var/www/app/
 cp index.html /var/www/app/
 
-# Configuring NGINX
+# Configure NGINX (com /prometheus/ e /metrics/)
 cat <<EOF > /etc/nginx/sites-available/default
 server {
     listen 80 default_server;
@@ -52,15 +52,13 @@ server {
 }
 EOF
 
-apt install -y apache2-utils
+# Setup Basic Auth for Prometheus and Metrics
 htpasswd -cb /etc/nginx/.htpasswd admin lablab2025...
+
+# Reinicia NGINX
 systemctl reload nginx
 
-
-# Restart NGINX
-systemctl restart nginx
-
-# Instala o Node Exporter no app-server
+# Instala Node Exporter
 useradd --no-create-home --shell /usr/sbin/nologin node_exporter
 
 NODE_EXPORTER_VERSION="1.7.0"
@@ -70,7 +68,6 @@ tar xvf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
 cp node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter /usr/local/bin/
 chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
-# Cria o service systemd
 cat <<EOF > /etc/systemd/system/node_exporter.service
 [Unit]
 Description=Node Exporter
@@ -86,7 +83,39 @@ Restart=always
 WantedBy=default.target
 EOF
 
-# Inicia o serviço
+# Instala Prometheus
+PROM_VERSION="2.52.0"
+cd /tmp
+curl -LO https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz
+tar xvf prometheus-${PROM_VERSION}.linux-amd64.tar.gz
+mv prometheus-${PROM_VERSION}.linux-amd64 /opt/prometheus
+
+cat <<EOF > /opt/prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+EOF
+
+cat <<EOF > /etc/systemd/system/prometheus.service
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/opt/prometheus/prometheus --config.file=/opt/prometheus/prometheus.yml --web.listen-address=":9090"
+Restart=always
+
+[Install]
+WantedBy=default.target
+EOF
+
+# Start both services
 systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable --now node_exporter
+systemctl enable --now prometheus
