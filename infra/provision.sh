@@ -37,27 +37,20 @@ server {
     }
 
     location /prometheus/ {
-        auth_basic "Restricted";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-
+        rewrite ^/prometheus(/.*)\$ \$1 break;
         proxy_pass http://localhost:9090/;
-        proxy_set_header Host \$host;
+        proxy_set_header Host localhost;
+        proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_http_version 1.1;
-
-        sub_filter_once off;
-        sub_filter 'href="/' 'href="/prometheus/';
-        sub_filter 'src="/' 'src="/prometheus/';
-        sub_filter 'action="/' 'action="/prometheus/';
-        proxy_set_header Accept-Encoding "";
-        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline'";
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
     location /metrics/ {
-        auth_basic "Restricted";
-        auth_basic_user_file /etc/nginx/.htpasswd;
         proxy_pass http://localhost:9100/;
-        proxy_set_header Host \$host;
+        proxy_set_header Host localhost;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 }
 EOF
@@ -110,8 +103,6 @@ scrape_configs:
       - targets: ['localhost:9100']
 EOF
 
-external_ip=$(curl -s ifconfig.me)
-
 cat <<EOF > /etc/systemd/system/prometheus.service
 [Unit]
 Description=Prometheus
@@ -119,10 +110,9 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/opt/prometheus/prometheus \\
-  --config.file=/opt/prometheus/prometheus.yml \\
-  --web.listen-address=":9090" \\
-  --web.external-url="http://${external_ip}/prometheus/"
+ExecStart=/opt/prometheus/prometheus \
+  --config.file=/opt/prometheus/prometheus.yml \
+  --web.listen-address=":9090"
 Restart=always
 
 [Install]
