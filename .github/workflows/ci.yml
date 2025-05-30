@@ -109,4 +109,4 @@ jobs:
       - name: Show JMeter Report URL
         run: |
           echo "JMeter IP: ${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
-          echo "Access the JMeter report at: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}/report/"
+          echo "Access the JMeter report at: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}"

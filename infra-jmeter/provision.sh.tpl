@@ -10,18 +10,18 @@ curl -L https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.zip -o
 unzip jmeter.zip
 mv apache-jmeter-5.5 /opt/jmeter
 
-# Extrai o IP limpo dentro do script
+# Extract the clean ip
 clean_ip=$(echo "${app_server_ip}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 
 echo "----"
 echo $clean_ip
 echo "----"
-# Grava o conteúdo do JMX (já injetado pelo Terraform)
+# Create jmx file from terraform template
 cat <<'EOF' > /root/load-test.jmx
 ${load_test_jmx}
 EOF
 
-# Cria um script separado para esperar o HTTP 200 e executar o JMeter
+# Script to wait for application server to be up and run jmeter tests
 cat <<'WAIT_EOF' > /root/run_app.sh
 #!/bin/bash
 clean_ip="$1"
@@ -39,7 +39,7 @@ WAIT_EOF
 chmod +x /root/run_app.sh
 /root/run_app.sh "$clean_ip"
 
-# Configuração do NGINX para servir o relatório
+# AppServer with the nodejs example
 cat <<EOF > /etc/nginx/sites-available/default
 server {
     listen 80 default_server;

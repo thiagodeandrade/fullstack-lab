@@ -38,7 +38,7 @@ server {
 }
 EOF
 
-# Configure observability.conf (Prometheus e Node Exporter na porta 8888)
+# Configure observability.conf (Port 8888)
 cat <<EOF > /etc/nginx/sites-available/observability.conf
 server {
     listen 8888;
@@ -68,14 +68,14 @@ server {
 }
 EOF
 
-# Setup Basic Auth for observability
+# Setup Basic Auth 
 htpasswd -cb /etc/nginx/.htpasswd admin lablab2025...
 
-# Ativa o segundo site e reinicia o NGINX
+# Activate prometheus site
 ln -s /etc/nginx/sites-available/observability.conf /etc/nginx/sites-enabled/observability.conf
 systemctl reload nginx
 
-# Instala Node Exporter
+# Install Node Exporter
 useradd --no-create-home --shell /usr/sbin/nologin node_exporter
 
 NODE_EXPORTER_VERSION="1.7.0"
@@ -100,7 +100,7 @@ Restart=always
 WantedBy=default.target
 EOF
 
-# Instala Prometheus
+# Install Prometheus
 PROM_VERSION="2.52.0"
 cd /tmp
 curl -LO https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz
