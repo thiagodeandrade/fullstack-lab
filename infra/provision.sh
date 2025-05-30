@@ -44,7 +44,7 @@ server {
     listen 8888;
     server_name _;
 
-    location /prometheus/ {
+    location / {
         auth_basic "Restricted";
         auth_basic_user_file /etc/nginx/.htpasswd;
         proxy_pass http://localhost:9090/;
