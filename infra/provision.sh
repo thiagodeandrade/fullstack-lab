@@ -4,7 +4,7 @@
 apt-get update -y
 apt-get install --fix-broken -y
 
-# Install nginx, nodejs, and git
+# Install nginx, nodejs, git, and utils
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt-get install -y nodejs nginx git apache2-utils
 
@@ -21,7 +21,7 @@ mkdir -p /var/www/app
 cp -r build/* /var/www/app/
 cp index.html /var/www/app/
 
-# Configure NGINX (com /prometheus/ e /metrics/)
+# Configure site default (app on port 80)
 cat <<EOF > /etc/nginx/sites-available/default
 server {
     listen 80 default_server;
@@ -35,30 +35,44 @@ server {
     location / {
         try_files \$uri \$uri/ =404;
     }
+}
+EOF
+
+# Configure observability.conf (Prometheus e Node Exporter na porta 8888)
+cat <<EOF > /etc/nginx/sites-available/observability.conf
+server {
+    listen 8888;
+    server_name _;
 
     location /prometheus/ {
-        rewrite ^/prometheus(/.*)\$ \$1 break;
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.htpasswd;
         proxy_pass http://localhost:9090/;
-        proxy_set_header Host localhost;
+        proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_http_version 1.1;
+        proxy_redirect off;
     }
 
     location /metrics/ {
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.htpasswd;
         proxy_pass http://localhost:9100/;
-        proxy_set_header Host localhost;
+        proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_http_version 1.1;
+        proxy_redirect off;
     }
 }
 EOF
 
-# Setup Basic Auth for Prometheus and Metrics
+# Setup Basic Auth for observability
 htpasswd -cb /etc/nginx/.htpasswd admin lablab2025...
 
-# Reinicia NGINX
+# Ativa o segundo site e reinicia o NGINX
+ln -s /etc/nginx/sites-available/observability.conf /etc/nginx/sites-enabled/observability.conf
 systemctl reload nginx
 
 # Instala Node Exporter
@@ -119,8 +133,9 @@ Restart=always
 WantedBy=default.target
 EOF
 
-# Start both services
+# Start all services
 systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable --now node_exporter
 systemctl enable --now prometheus
+systemctl restart nginx
