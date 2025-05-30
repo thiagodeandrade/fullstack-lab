@@ -39,8 +39,18 @@ server {
     location /prometheus/ {
         auth_basic "Restricted";
         auth_basic_user_file /etc/nginx/.htpasswd;
+
         proxy_pass http://localhost:9090/;
         proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_http_version 1.1;
+
+        sub_filter_once off;
+        sub_filter 'href="/' 'href="/prometheus/';
+        sub_filter 'src="/' 'src="/prometheus/';
+        sub_filter 'action="/' 'action="/prometheus/';
+        proxy_set_header Accept-Encoding "";
+        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline'";
     }
 
     location /metrics/ {
@@ -100,6 +110,8 @@ scrape_configs:
       - targets: ['localhost:9100']
 EOF
 
+external_ip=$(curl -s ifconfig.me)
+
 cat <<EOF > /etc/systemd/system/prometheus.service
 [Unit]
 Description=Prometheus
@@ -107,7 +119,10 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/opt/prometheus/prometheus --config.file=/opt/prometheus/prometheus.yml --web.listen-address=":9090"
+ExecStart=/opt/prometheus/prometheus \\
+  --config.file=/opt/prometheus/prometheus.yml \\
+  --web.listen-address=":9090" \\
+  --web.external-url="http://${external_ip}/prometheus/"
 Restart=always
 
 [Install]
