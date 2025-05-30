@@ -7,7 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    outputs:
+      build_status: ${{ steps.set_status.outputs.success }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,11 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fix files permissions
-        run: |
-          chmod +x node_modules/.bin/eslint
-          chmod +x node_modules/.bin/prettier
-          chmod +x node_modules/.bin/jest
+      - name: Fix file permissions
+        run: chmod -R +x node_modules/.bin
 
       - name: Run linter
         run: npm run lint
@@ -37,3 +35,78 @@ jobs:
 
       - name: Build project
         run: npm run build
+
+      - name: Set build status
+        id: set_status
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  deploy-app:
+    runs-on: ubuntu-latest
+    needs: build
+    outputs:
+      app_ip: ${{ steps.get_app_ip.outputs.app_ip }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init & Apply (app-server)
+        working-directory: ./infra
+        run: |
+          terraform init
+          terraform apply -auto-approve
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+
+      - name: Get app-server Public IP
+        id: get_app_ip
+        working-directory: ./infra
+        shell: bash
+        run: |
+          ip=$(terraform output -raw ip_address | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
+          echo "app_ip=$ip" >> $GITHUB_OUTPUT
+
+  deploy-jmeter:
+    runs-on: ubuntu-latest
+    needs: deploy-app
+    outputs:
+      jmeter_ip: ${{ steps.get_jmeter_ip.outputs.jmeter_ip }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init & Apply (jmeter-server)
+        working-directory: ./infra-jmeter
+        run: |
+          terraform init
+          terraform apply -auto-approve -var="app_server_ip=${{ needs.deploy-app.outputs.app_ip }}"
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+
+      - name: Get jmeter-server Public IP
+        id: get_jmeter_ip
+        working-directory: ./infra-jmeter
+        shell: bash
+        run: |
+          ip=$(terraform output -raw jmeter_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n1 | tr -d '\r\n')
+          echo "jmeter_ip=$ip" >> $GITHUB_OUTPUT
+
+  show-report-url:
+    runs-on: ubuntu-latest
+    needs: deploy-jmeter
+    steps:
+      - name: Show JMeter Report URL
+        run: |
+          echo "JMeter IP: ${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
+          echo "Access the JMeter report at: http://${{ needs.deploy-jmeter.outputs.jmeter_ip }}"
